@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      
+      function drawChart(playerData) {
+        var data = new google.visualization.DataTable();
+        data.addColumn('number', 'Game');
+        data.addColumn('number', 'Times at Bat');
+        data.addColumn('number', 'Hits');
+        data.addColumn('number', 'Batting Average');
+        data.addColumn('number', 'On Base');
+        data.addColumn('number', 'On Base Average');
+        data.addColumn('number', 'RBI\'s');
+        data.addColumn('number', 'Runs Scored');
+        data.addColumn('number', 'Strikeouts');
+        data.addColumn('number', 'Walks');
+        data.addRows(playerData);
+
+        var options = {
+          title: 'Player Performance',
+          hAxis: {title: 'Game', viewWindowMode: 'pretty'}, 
+          vAxis: {title: 'Stats', viewWindowMode: 'pretty'},
+          seriesType: 'bars'
+        };
+
+        var chart = new google.visualization.ComboChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+
+        drawLineCharts(data);
+      }
+
+      function drawLineCharts(data) {
+        for (var i = 1; i < data.getNumberOfColumns(); i++) {
+          var lineChartData = new google.visualization.DataTable();
+          lineChartData.addColumn('number', 'Game');
+          lineChartData.addColumn('number', data.getColumnLabel(i));
+          lineChartData.addRows(data.getNumberOfRows());
+
+          for (var j = 0; j < data.getNumberOfRows(); j++) {
+            lineChartData.setValue(j, 0, data.getValue(j, 0));
+            lineChartData.setValue(j, 1, data.getValue(j, i));
+          }
+
+          var lineChartOptions = {
+            title: data.getColumnLabel(i),
+            hAxis: {title: 'Game', viewWindowMode: 'pretty'},
+            vAxis: {title: data.getColumnLabel(i), viewWindowMode: 'pretty'},
+            series: {
+              0: {
+                type: 'line',
+                color: 'blue'
+              }
+            }
+          };
+          var lineChart = new google.visualization.LineChart(document.getElementById('line_chart_div_' + i));
+          lineChart.draw(lineChartData, lineChartOptions);
+        }
+      }
+
+      function updateChart() {
+        var player = document.getElementById("playerSelect").value;
+        google.script.run.withSuccessHandler(drawChart).getPlayerData(player);
+      }
+      
+      function refreshData() {
+        updateChart();
+      }
+
+      // Load the initial data for the first player on page load
+      google.charts.setOnLoadCallback(function() {
+        updateChart();
+      });
+    </script>
+  </head>
+  <body>
+    
+  <a href="https://lh3.googleusercontent.com/pw/AIL4fc_QvOlvyXaRMNfDR5KQ7CiUfxlV1JlXV2rKPn3P8MwJanQzuiR1DcPBFenQiEA6djTaoVWg5gbII1liuYRi4rmP7OGIt4wf6ABDheTp07m-D5Sp6g=w2400?source=screenshot.guru"> <img src="https://lh3.googleusercontent.com/pw/AIL4fc_QvOlvyXaRMNfDR5KQ7CiUfxlV1JlXV2rKPn3P8MwJanQzuiR1DcPBFenQiEA6djTaoVWg5gbII1liuYRi4rmP7OGIt4wf6ABDheTp07m-D5Sp6g=w600-h315-p-k" /> </a><br>
+  <div>
+	<span style="font-family:arial,helvetica,sans-serif;">Welcome!</span></div>
+<div>
+	&nbsp;</div>
+<div>
+	<span style="font-family:arial,helvetica,sans-serif;">This is the player statistic tracker for Slide Right. It was created for keeping track of Hits, RBI&#39;s, Batting Averages, etc..&nbsp;&nbsp;</span></div>
+<div>
+	&nbsp;</div>
+<div>
+	<span style="font-family:arial,helvetica,sans-serif;">Just choose a player from the drop down to see their stats. The stats will typicaly be updated on by tuesday of the following week.&nbsp;</span></div>
+<div>
+	&nbsp;</div>
+<div>
+	<span style="font-size:10px;"><span style="font-family:arial,helvetica,sans-serif;"><span style="background-color: rgba(80, 151, 255, 0.18); color: rgb(4, 12, 40);">&copy;</span>&nbsp;Johnathan Cork</span></span></div>
+
+
+    <select id="playerSelect" onchange="updateChart()">
+      <? var ss = SpreadsheetApp.getActiveSpreadsheet(); ?>
+      <? var sheets = ss.getSheets(); ?>
+      <? for (var i = 0; i < sheets.length; i++) { ?>
+        <option value="<?= sheets[i].getName(); ?>"><?= sheets[i].getName(); ?></option>
+      <? } ?>
+    </select>
+    <button onclick="refreshData()">Refresh Data</button>
+    
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+    <!-- Add containers for each line chart -->
+    <? for (var i = 1; i < 10; i++) { ?>
+      <div id="line_chart_div_<?= i ?>" style="width: 900px; height: 500px;"></div>
+    <? } ?>
+    
+  </body>
+</html>
